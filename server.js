@@ -25,7 +25,12 @@ app.use(express.urlencoded({ extended: true }));
 // Static uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Routes
+// ✅ Root route for Railway health check
+app.get('/', (req, res) => {
+  res.status(200).send('Server is running');
+});
+
+// API Routes
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
 
