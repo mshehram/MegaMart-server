@@ -1,3 +1,4 @@
+
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -25,9 +26,14 @@ app.use(express.urlencoded({ extended: true }));
 // Static uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ✅ Root route for Railway health check
+// ✅ Root route for quick test
 app.get('/', (req, res) => {
   res.status(200).send('Server is running');
+});
+
+// ✅ Health check route for Railway
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
 });
 
 // API Routes
