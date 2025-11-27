@@ -1,22 +1,32 @@
+
+require('dotenv').config();
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
+
+const productRoutes = require('./routes/productRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 
 const app = express();
 
-// ✅ CORS setup (frontend + localhost)
+// ✅ CORS setup (frontend URL + localhost)
 app.use(cors({
   origin: [
-    'http://localhost:5173',                 // Local frontend
-    'https://mega-mart-mshehram.vercel.app' // Vercel frontend
+    process.env.CLIENT_URL,          // Vercel frontend
+    'http://localhost:5173',         // Local frontend
   ],
   credentials: true,
 }));
 
-// ✅ Body parsers
-app.use(express.json());
+// Body parsers
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Root route
+// Static uploads folder
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// ✅ Root route for quick test
 app.get('/', (req, res) => {
   res.status(200).send('Server is running');
 });
@@ -26,13 +36,21 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// ✅ Dummy API route (optional)
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'API is working' });
+// API Routes
+app.use('/api/products', productRoutes);
+app.use('/api/categories', categoryRoutes);
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
 });
 
-// ✅ Use Railway PORT
+// Start server after DB connect
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log('MongoDB connected successfully');
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  })
+  .catch((err) => console.error('MongoDB connection error:', err));
